@@ -135,6 +135,6 @@ frame_actions = tk.Frame(root)
 frame_actions.pack(fill=tk.X, padx=10, pady=10)
 
 btn_process = tk.Button(frame_actions, text="Encrypt/Decrypt", command=process_file)  # Assume process_file decides whether to encrypt or decrypt
-btn_process.pack(side=tk.RIGHT)
+btn_process.pack(side=tk.BOTTOM)
 
 root.mainloop()
