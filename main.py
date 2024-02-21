@@ -47,44 +47,44 @@ def decrypt_file(file_path, key):
     if os.path.exists(file_path): os.remove(file_path) 
     return zip_path.replace(".zip", "")
 
-
-
 def select_file():
     file_path = filedialog.askopenfilename()
     entry_file_path.delete(0, tk.END)
     entry_file_path.insert(0, file_path)
 
-def encrypt_action():
-    file_path = entry_file_path.get()
-    key = entry_secret_key.get().encode()  # Ensure the key is in bytes
-    if not file_path or not key  or file_path[-4:] == ".enc":
-        messagebox.showerror("Error", "Please select a file and enter a secret key.")
-        return
-
-    new_file_path = encrypt_file(file_path, key)
-    entry_file_path.delete(0, tk.END)  
-    entry_file_path.insert(0, new_file_path) 
-    messagebox.showinfo("Success", "File encrypted successfully.")
-
-def decrypt_action():
-    file_path = entry_file_path.get()
-    key = entry_secret_key.get().encode()  # Ensure the key is in bytes
-    if not file_path or not key or file_path[-4:] != ".enc":
-        messagebox.showerror("Error", "Please select a file(.enc) and enter a secret key.")
-        return
-
-    new_file_path = decrypt_file(file_path, key)
-    entry_file_path.delete(0, tk.END)  
-    entry_file_path.insert(0, new_file_path)  
-    messagebox.showinfo("Success", "File decrypted successfully.")
 
 def toggle_secret_key_visibility():
     if entry_secret_key.cget("show") == "":
         entry_secret_key.config(show="*")
-        btn_toggle_key.config(text="Show Key")
     else:
         entry_secret_key.config(show="")
-        btn_toggle_key.config(text="Hide Key")
+        
+def process_file():
+    file_path = entry_file_path.get()
+    key = entry_secret_key.get().encode()  # Convert key to bytes
+    if not file_path or not key:
+        messagebox.showerror("Error", "Please select a file and enter a secret key.")
+        return
+    
+    # Determine action based on file extension
+    if file_path.endswith('.enc'):
+        try:
+            new_file_path = decrypt_file(file_path, key)
+            # messagebox.showinfo("Success", "File decrypted successfully.")
+            entry_file_path.delete(0, tk.END)  
+            entry_file_path.insert(0, new_file_path)  
+        except Exception as e:
+            messagebox.showerror("Error", "Failed to decrypt the file.")
+            print(e)
+    else:
+        try:
+            new_file_path = encrypt_file(file_path, key)
+            # messagebox.showinfo("Success", "File encrypted successfully.")
+            entry_file_path.delete(0, tk.END)  
+            entry_file_path.insert(0, new_file_path)  
+        except Exception as e:
+            messagebox.showerror("Error", "Failed to encrypt the file.")
+            print(e)
 
 # Modify the generate_key function to display the key in the entry widget
 def generate_and_fill():
@@ -95,45 +95,46 @@ def generate_and_fill():
 
 # Setting up the GUI with adjusted layout
 root = tk.Tk()
-root.title("Encryptor-Decryptor Tool")
+root.title("EnDecryptor")
+
+root.geometry("760x130")
+
+root.columnconfigure(0, weight=1)
 
 # File selection frame
 frame_file = tk.Frame(root)
-frame_file.pack(padx=10, pady=5)
+frame_file.pack(fill=tk.X, padx=10, pady=5, anchor='w')
 
 lbl_select_file = tk.Label(frame_file, text="Select File:")
-lbl_select_file.pack(side=tk.LEFT)
+lbl_select_file.pack(side=tk.LEFT, anchor='w')
 
-entry_file_path = tk.Entry(frame_file, width=60)
-entry_file_path.pack(side=tk.LEFT, padx=5)
+entry_file_path = tk.Entry(frame_file)
+entry_file_path.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 5))
 
 btn_browse = tk.Button(frame_file, text="Browse", command=select_file)
-btn_browse.pack(side=tk.LEFT)
+btn_browse.pack(side=tk.LEFT, anchor='w')
 
 # Secret key frame
 frame_key = tk.Frame(root)
-frame_key.pack(padx=10, pady=5)
+frame_key.pack(fill=tk.X, padx=10, pady=5, anchor='w')
 
 lbl_secret_key = tk.Label(frame_key, text="Secret Key:")
-lbl_secret_key.pack(side=tk.LEFT)
+lbl_secret_key.pack(side=tk.LEFT, anchor='w')
 
-entry_secret_key = tk.Entry(frame_key, width=50, show="*")  # Masks the input
-entry_secret_key.pack(side=tk.LEFT, padx=5)
+entry_secret_key = tk.Entry(frame_key, show="*")
+entry_secret_key.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 5))
+
+btn_toggle_key = tk.Button(frame_key, text="Show/Hide Key", command=toggle_secret_key_visibility)
+btn_toggle_key.pack(side=tk.LEFT, anchor='w')
 
 btn_generate_key = tk.Button(frame_key, text="Generate New Key", command=generate_and_fill)
-btn_generate_key.pack(side=tk.LEFT)
-
-btn_toggle_key = tk.Button(frame_key, text="Show Key", command=toggle_secret_key_visibility, width=10)
-btn_toggle_key.pack(side=tk.LEFT)
+btn_generate_key.pack(side=tk.LEFT, anchor='w')
 
 # Actions frame
 frame_actions = tk.Frame(root)
-frame_actions.pack(padx=10, pady=10, fill=tk.X)
+frame_actions.pack(fill=tk.X, padx=10, pady=10)
 
-btn_encrypt = tk.Button(frame_actions, text="Encrypt", command=encrypt_action)
-btn_encrypt.pack(side=tk.LEFT, expand=True, fill=tk.X)
-
-btn_decrypt = tk.Button(frame_actions, text="Decrypt", command=decrypt_action)
-btn_decrypt.pack(side=tk.LEFT, expand=True, fill=tk.X)
+btn_process = tk.Button(frame_actions, text="Encrypt/Decrypt", command=process_file)  # Assume process_file decides whether to encrypt or decrypt
+btn_process.pack(side=tk.RIGHT)
 
 root.mainloop()
